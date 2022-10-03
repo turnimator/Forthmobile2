@@ -135,10 +135,10 @@ LED_BUILTIN output pinMode
 : showBoard
   readp2s
     binary
-   ." Inputs        "   . cr
+   ." Inputs        "  ~ . cr
     decimal
-   ." Left wheel  "  . cr
-  ." Right wheel "  . cr
+   ." Left wheel  " ~ . cr
+  ." Right wheel "  ~ . cr
 
 ;
 
@@ -188,9 +188,6 @@ LED_BUILTIN output pinMode
  decimal
 ; 
 
-: stop
-    outputclear writeboard 
-;
 
 
 : blinkoutputs
@@ -219,6 +216,7 @@ blinkoutputs
 ;
 
 : drivems ( ums -- )
+   gear_forward
    ms 
    outputclear writeboard
 ;
@@ -247,5 +245,18 @@ blinkoutputs
 
 : right_forward
     5 doff 4 don
+;
+
+: stop
+    4 outputoff 5 outputoff 6 outputoff 7 outputoff
+    writeboard
+;
+
+: gear_forward
+    left_forward right_forward
+;
+
+: gear_backward 
+    left_backward right_backward
 ;
 
