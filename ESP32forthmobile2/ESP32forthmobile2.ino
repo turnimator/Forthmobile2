@@ -193,6 +193,7 @@ typedef int64_t dcell_t;
   Y(heap_caps_free, heap_caps_free(a0); DROP) \
   Y(heap_caps_realloc, \
     tos = (cell_t) heap_caps_realloc(a2, n1, n0); NIPn(2)) \
+   X("~", X_BNOT, tos = ~tos;) \
   /* Serial */ \
   X("Serial.begin", SERIAL_BEGIN, Serial.begin(tos); DROP) \
   X("Serial.end", SERIAL_END, Serial.end()) \
@@ -453,7 +454,7 @@ typedef int64_t dcell_t;
   X("WiFi.macAddress", WIFI_MAC_ADDRESS, WiFi.macAddress(b0); DROP) \
   X("WiFi.localIP", WIFI_LOCAL_IPS, PUSH FromIP(WiFi.localIP())) \
   X("WiFi.mode", WIFI_MODE, WiFi.mode((wifi_mode_t) n0); DROP) \
-  X("WiFi.softAP", WIFI_SOFTAP, WiFi.softAP(c0)) \
+  X("WiFi.softAP", WIFI_SOFTAP, WiFi.softAP(c1, c0)) \
   X("WiFi.setTxPower", WIFI_SET_TX_POWER, WiFi.setTxPower((wifi_power_t) n0); DROP) \
   X("WiFi.getTxPower", WIFI_GET_TX_POWER, PUSH WiFi.getTxPower())
 #endif
@@ -655,6 +656,9 @@ void setupServo(){
   servo.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
   delay(10);
+  for (int i = 0; i < 16; i++){
+    setServo(i, (SERVOMIN + SERVOMAX) / 2);
+  }
 }
 
 void setServo(int servoNum, int pwm){
