@@ -78,6 +78,7 @@ LED_BUILTIN output pinMode
 \ READ PISO REGISTERS
 
 : readP2S ( - u u u ) \ read all three registters, leaving the contents on the stack
+\ BUG? MAKE SURE TO READ THESE THE RIGHT WAY!!
    decimal
   P2S_SHLD 0 digitalWrite 0 ms \ load data
   P2S_SHLD 1 digitalWrite 0 ms \ prepare to shift
@@ -92,7 +93,8 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead OR
     P2S_SCK 1 digitalWrite
   LOOP
-  ~
+ \ ~ 
+   255 and
   0
   8 0 DO
     1 LSHIFT
@@ -108,7 +110,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead OR
     P2S_SCK 1 digitalWrite
   LOOP
-  ~
+  ~ 
 ;
 
 
@@ -137,10 +139,10 @@ LED_BUILTIN output pinMode
 : showBoard
   readp2s
     binary
-   ." Inputs        "  ~ . cr
+   ." Inputs: " 255 and . 
     decimal
-   ." Left wheel  " . cr
-  ." Right wheel "  . cr
+   ." L " . 
+  ." R "  . cr
 
 ;
 
