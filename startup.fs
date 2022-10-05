@@ -2,6 +2,7 @@
 
 
 
+
 2 constant LED_BUILTIN
 
 \ 74165 Parallel to serial
@@ -219,29 +220,29 @@ blinkoutputs
   dup 1 swap ledcwrite 0 swap ledcwrite
  ;
 
-: don
+: don ( uledno -- )
   outputon
   writeboard
 ;
 
-: doff
+: doff ( uledno -- )
   outputoff
   writeboard
 ;
 
-: left_forward
+: left_fw
    6 doff 7 don
 ;
 
-: left_backward
+: left_bw
     7 doff 6 don
 ;
 
-: right_backward
+: right_bw
     4 doff 5 don
 ;
 
-: right_forward
+: right_fw
     5 doff 4 don
 ;
 
@@ -250,12 +251,12 @@ blinkoutputs
     writeboard
 ;
 
-: gear_forward
-    left_forward right_forward
+: gear_fw
+    left_fw right_fw
 ;
 
-: gear_backward 
-    left_backward right_backward
+: gear_bw 
+    left_bw right_bw
 ;
 
 setupservo
