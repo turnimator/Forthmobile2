@@ -91,7 +91,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead OR
     P2S_SCK 1 digitalWrite
   LOOP
-
+  ~
   0
   8 0 DO
     1 LSHIFT
@@ -99,7 +99,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead OR
     P2S_SCK 1 digitalWrite
   LOOP
-
+  ~
   0
   8 0 DO
     1 LSHIFT
@@ -107,6 +107,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead OR
     P2S_SCK 1 digitalWrite
   LOOP
+  ~
 ;
 
 
@@ -137,8 +138,8 @@ LED_BUILTIN output pinMode
     binary
    ." Inputs        "  ~ . cr
     decimal
-   ." Left wheel  " ~ . cr
-  ." Right wheel "  ~ . cr
+   ." Left wheel  " . cr
+  ." Right wheel "  . cr
 
 ;
 
@@ -170,9 +171,6 @@ LED_BUILTIN output pinMode
     1 swap 8 - lshift ~ outreg2 and to outreg2 
   THEN
 ;
-
-: left_forward
- ;
 
 : outputClear
  0 to outreg1
@@ -206,20 +204,20 @@ blinkoutputs
 : showboard2
     readP2s
     binary .  
-    decimal 255 swap - . 255 swap - . cr 
+    decimal . . cr 
 ; 
 
-
-: speed ( uspeed -- )
- 0 swap ledcwrite
- 1 swap ledcwrite
+: left_speed ( u -- )
+    0 swap ledcwrite 
 ;
 
-: drivems ( ums -- )
-   gear_forward
-   ms 
-   outputclear writeboard
+: right_speed ( uspeed -- )
+    1 swap ledcwrite 
 ;
+
+: speed ( uspeed --)
+  dup 1 swap ledcwrite 0 swap ledcwrite
+ ;
 
 : don
   outputon
@@ -259,4 +257,7 @@ blinkoutputs
 : gear_backward 
     left_backward right_backward
 ;
+
+setupservo
+setuplaser
 
