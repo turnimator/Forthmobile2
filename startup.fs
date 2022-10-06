@@ -108,6 +108,8 @@ LED_BUILTIN output pinMode
     P2S_SCK 1 digitalWrite
   LOOP
   ~ 255 and
+  P2S_CE 1 digitalWrite 
+  P2S_SHLD 0 digitalWrite  \ return to load data
 ;
 
 
