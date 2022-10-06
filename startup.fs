@@ -82,35 +82,32 @@ LED_BUILTIN output pinMode
    decimal
   P2S_SHLD 0 digitalWrite 0 ms \ load data
   P2S_SHLD 1 digitalWrite 0 ms \ prepare to shift
-  P2S_SCK 1 digitalWrite
-  P2S_CE 0 digitalWrite
-  P2S_SCK 0 digitalWrite
+  P2S_SCK 1 digitalWrite 
+  P2S_CE 0 digitalWrite 
+  P2S_SCK 0 digitalWrite 
+
+  0 
+  8 0 DO 
+    P2S_SCK 0 digitalWrite 
+    P2S_SDA digitalRead 7 i - LSHIFT OR 
+    P2S_SCK 1 digitalWrite 
+  LOOP
+  ~ 255 and
+  0
+  8 0 DO
+    P2S_SCK 0 digitalWrite 
+    P2S_SDA digitalRead 7 i -  LSHIFT OR 
+    P2S_SCK 1 digitalWrite 
+  LOOP
+  ~ 255 and
 
   0
   8 0 DO
-    1 LSHIFT
     P2S_SCK 0 digitalWrite
-    P2S_SDA digitalRead OR
+    P2S_SDA digitalRead 7 i - LSHIFT OR
     P2S_SCK 1 digitalWrite
   LOOP
- \ ~ 
-   255 and
-  0
-  8 0 DO
-    1 LSHIFT
-    P2S_SCK 0 digitalWrite
-    P2S_SDA digitalRead OR
-    P2S_SCK 1 digitalWrite
-  LOOP
-  ~
-  0
-  8 0 DO
-    1 LSHIFT
-    P2S_SCK 0 digitalWrite
-    P2S_SDA digitalRead OR
-    P2S_SCK 1 digitalWrite
-  LOOP
-  ~ 
+  ~ 255 and
 ;
 
 
@@ -232,19 +229,19 @@ blinkoutputs
   writeboard
 ;
 
-: left_fw
+: right_fw
    6 doff 7 don
 ;
 
-: left_bw
+: right_bw
     7 doff 6 don
 ;
 
-: right_bw
+: left_bw
     4 doff 5 don
 ;
 
-: right_fw
+: left_fw
     5 doff 4 don
 ;
 
