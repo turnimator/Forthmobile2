@@ -229,7 +229,6 @@ typedef int64_t dcell_t;
   X("R/W", R_W, PUSH O_RDWR) \
   X("W/O", W_O, PUSH O_WRONLY) \
   Y(BIN, ) \
-  X("KEY-FILE?", KEY_FILE, cell_t fd = n0; n0 = available(); PUSH n0 ) \
   X("CLOSE-FILE", CLOSE_FILE, tos = close(tos); tos = tos ? errno : 0) \
   X("FLUSH-FILE", FLUSH_FILE, fsync(tos); /* fsync has no impl and returns ENOSYS :-( */ tos = 0) \
   X("OPEN-FILE", OPEN_FILE, cell_t mode = n0; DROP; cell_t len = n0; DROP; \
