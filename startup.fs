@@ -75,16 +75,19 @@ LED_BUILTIN output pinMode
 
 1 blinkHello
 
-\ READ PISO REGISTERS
+\ READ PISO REGISTERS 74LS165
 
 : readP2S ( - u u u ) \ read all three registters, leaving the contents on the stack
 
    decimal
-  P2S_SHLD 0 digitalWrite 30 ms \ load data
-  P2S_SHLD 1 digitalWrite 30 ms \ prepare to shift
-  P2S_SCK 1 digitalWrite 
-  P2S_CE 0 digitalWrite 
-  P2S_SCK 0 digitalWrite 
+  P2S_CE 1 digitalWrite     \ disable clock 
+  20 ms                     \ wait one cycle
+  P2S_SHLD 0 digitalWrite s \ load data
+  10 ms
+  P2S_SHLD 1 digitalWrite  \ 
+  40 ms \ wait two cycles before enabling the clock
+  P2S_CE 0 digitalWrite \ enable clock
+  P2S_SCK 1 digitalWrite \ set clock HIGH to prepare for shift
 
   0 
   8 0 DO 
@@ -92,14 +95,14 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i - LSHIFT OR 
     P2S_SCK 1 digitalWrite 
   LOOP
-  ~ 255 and
+  ~ 
   0
   8 0 DO
     P2S_SCK 0 digitalWrite 
     P2S_SDA digitalRead 7 i -  LSHIFT OR 
     P2S_SCK 1 digitalWrite 
   LOOP
-  ~ 255 and
+  ~ 
 
   0
   8 0 DO
@@ -107,9 +110,10 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i - LSHIFT OR
     P2S_SCK 1 digitalWrite
   LOOP
-  ~ 255 and
-  P2S_CE 1 digitalWrite 
-  P2S_SHLD 0 digitalWrite  \ return to load data
+  ~ 
+
+  P2S_CE 1 digitalWrite     \ disable clock
+
 ;
 
 
