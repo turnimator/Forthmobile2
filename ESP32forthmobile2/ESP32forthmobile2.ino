@@ -144,7 +144,7 @@ typedef int64_t dcell_t;
 #define ENABLE_INTERRUPTS_SUPPORT
 #define ENABLE_TOF_LASER_SUPPORT
 #define ENABLE_SERVO_CONTROLLER_SUPPORT
-#define ENABLE_DFROBOT_QMC5883_SUPPORT
+#define ENABLE_QMC5883_SUPPORT
 
               // Uncomment this #define for OLED Support.
               // You will need to install these libraries from the Library Manager:
@@ -265,7 +265,7 @@ typedef int64_t dcell_t;
   OPTIONAL_OLED_SUPPORT \
   OPTIONAL_TOF_LASER_SUPPORT\
   OPTIONAL_SERVO_CONTROLLER_SUPPORT \
-  OPTIONAL_DFROBOT_QMC5883_SUPPORT \
+  OPTIONAL_QMC5883_SUPPORT \
 
 #ifndef ENABLE_SPIFFS_SUPPORT
   // Provide a default failing SPIFFS.begin
@@ -688,11 +688,23 @@ Y(servopwm, setServo(n1, n0); DROPn(2))
 ///////////////////////////////////////////////////////////
 
 //////// QMC5883 Compass //////////////////////////////////
-#ifdef ENABLE_DFROBOT_QMC5883_SUPPORT
-#define OPTIONAL_DFROBOT_QMC5883_SUPPORT
+#ifdef ENABLE_QMC5883_SUPPORT
+
+#include <QMC5883LCompass.h>
+
+QMC5883LCompass compass;
+
+void setUpCompass(){
+  compass.init();
+}
+
+
+#define OPTIONAL_QMC5883_SUPPORT \
+X("setupCompass", SETUP_COMPASS, setUpCompass() ) \
+X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compass.getY()); PUSH(compass.getZ()) ) 
 
 #else
-#define OPTIONAL_DFROBOT_QMC5883_SUPPORT
+#define OPTIONAL_QMC5883_SUPPORT
 #endif
 
   static char filename[PATH_MAX];
