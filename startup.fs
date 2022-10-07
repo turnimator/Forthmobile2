@@ -82,7 +82,7 @@ LED_BUILTIN output pinMode
    decimal
   P2S_CE 1 digitalWrite     \ disable clock 
   20 ms                     \ wait one cycle
-  P2S_SHLD 0 digitalWrite s \ load data
+  P2S_SHLD 0 digitalWrite \ load data
   10 ms
   P2S_SHLD 1 digitalWrite  \ 
   40 ms \ wait two cycles before enabling the clock
@@ -90,20 +90,21 @@ LED_BUILTIN output pinMode
   P2S_SCK 1 digitalWrite \ set clock HIGH to prepare for shift
 
     \ Read the 74LS165 registers MSB first
-  0 
+  0 \ put the 1st result on the stack
   8 0 DO 
     P2S_SCK 0 digitalWrite 
-    P2S_SDA digitalRead 7 i - LSHIFT OR \ shift the bit to the right position and OR it in
+    P2S_SDA digitalRead 7 i - LSHIFT OR \ shift the bit to the right position 
     P2S_SCK 1 digitalWrite 
   LOOP
-  ~ 
+  FLIP \ P2S_SDA is connected to the inverting output. Flip all bits
+
   0
   8 0 DO
     P2S_SCK 0 digitalWrite 
     P2S_SDA digitalRead 7 i -  LSHIFT OR 
     P2S_SCK 1 digitalWrite 
   LOOP
-  ~ 
+  FLIP
 
   0
   8 0 DO
@@ -111,7 +112,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i - LSHIFT OR
     P2S_SCK 1 digitalWrite
   LOOP
-  ~ 
+  FLIP
 
   P2S_CE 1 digitalWrite     \ disable clock
 
@@ -173,9 +174,9 @@ LED_BUILTIN output pinMode
 : outputOff ( u -- )
    decimal
    dup 8 < IF
-    1 swap lshift ~ outreg1 and to outreg1 
+    1 swap lshift FLIP outreg1 and to outreg1 
   ELSE
-    1 swap 8 - lshift ~ outreg2 and to outreg2 
+    1 swap 8 - lshift FLIP outreg2 and to outreg2 
   THEN
 ;
 
