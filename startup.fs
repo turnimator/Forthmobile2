@@ -96,7 +96,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i - LSHIFT OR \ shift the bit to the right position 
     P2S_SCK 1 digitalWrite 
   LOOP
-  FLIP \ P2S_SDA is connected to the inverting output. Flip all bits
+  FLIP 255 and \ P2S_SDA is connected to the inverting output. Flip all bits
 
   0
   8 0 DO
@@ -104,7 +104,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i -  LSHIFT OR 
     P2S_SCK 1 digitalWrite 
   LOOP
-  FLIP
+  FLIP 255 and
 
   0
   8 0 DO
@@ -112,7 +112,7 @@ LED_BUILTIN output pinMode
     P2S_SDA digitalRead 7 i - LSHIFT OR
     P2S_SCK 1 digitalWrite
   LOOP
-  FLIP
+  FLIP 255 and
 
   P2S_CE 1 digitalWrite     \ disable clock
 
@@ -141,14 +141,10 @@ LED_BUILTIN output pinMode
     S2P_LATCH 1 digitalWrite
 ;
 
-: showBoard
+: .board
   readp2s
-    binary
-   ." Inputs: " 255 and . 
-    decimal
-   ." L " . 
-  ." R "  . cr
-
+   binary . ." , "
+   decimal . ." , " . cr
 ;
 
 
