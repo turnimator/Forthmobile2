@@ -144,6 +144,7 @@ typedef int64_t dcell_t;
 #define ENABLE_INTERRUPTS_SUPPORT
 #define ENABLE_TOF_LASER_SUPPORT
 #define ENABLE_SERVO_CONTROLLER_SUPPORT
+#define ENABLE_DFROBOT_QMC5883_SUPPORT
 
               // Uncomment this #define for OLED Support.
               // You will need to install these libraries from the Library Manager:
@@ -193,7 +194,7 @@ typedef int64_t dcell_t;
   Y(heap_caps_free, heap_caps_free(a0); DROP) \
   Y(heap_caps_realloc, \
     tos = (cell_t) heap_caps_realloc(a2, n1, n0); NIPn(2)) \
-   X("~", X_BNOT, tos = ~tos;) \
+   X("FLIP", BIT_FLIP, tos = ~tos;) \
   /* Serial */ \
   X("Serial.begin", SERIAL_BEGIN, Serial.begin(tos); DROP) \
   X("Serial.end", SERIAL_END, Serial.end()) \
@@ -228,6 +229,7 @@ typedef int64_t dcell_t;
   X("R/W", R_W, PUSH O_RDWR) \
   X("W/O", W_O, PUSH O_WRONLY) \
   Y(BIN, ) \
+  X("KEY-FILE?", KEY_FILE, cell_t fd = n0; n0 = available(); PUSH n0 ) \
   X("CLOSE-FILE", CLOSE_FILE, tos = close(tos); tos = tos ? errno : 0) \
   X("FLUSH-FILE", FLUSH_FILE, fsync(tos); /* fsync has no impl and returns ENOSYS :-( */ tos = 0) \
   X("OPEN-FILE", OPEN_FILE, cell_t mode = n0; DROP; cell_t len = n0; DROP; \
@@ -264,6 +266,7 @@ typedef int64_t dcell_t;
   OPTIONAL_OLED_SUPPORT \
   OPTIONAL_TOF_LASER_SUPPORT\
   OPTIONAL_SERVO_CONTROLLER_SUPPORT \
+  OPTIONAL_DFROBOT_QMC5883_SUPPORT \
 
 #ifndef ENABLE_SPIFFS_SUPPORT
   // Provide a default failing SPIFFS.begin
@@ -684,6 +687,14 @@ Y(servopwm, setServo(n1, n0); DROPn(2))
 #endif
 
 ///////////////////////////////////////////////////////////
+
+//////// QMC5883 Compass //////////////////////////////////
+#ifdef ENABLE_DFROBOT_QMC5883_SUPPORT
+#define OPTIONAL_DFROBOT_QMC5883_SUPPORT
+
+#else
+#define OPTIONAL_DFROBOT_QMC5883_SUPPORT
+#endif
 
   static char filename[PATH_MAX];
   static String string_value;
