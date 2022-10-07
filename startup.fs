@@ -89,10 +89,11 @@ LED_BUILTIN output pinMode
   P2S_CE 0 digitalWrite \ enable clock
   P2S_SCK 1 digitalWrite \ set clock HIGH to prepare for shift
 
+    \ Read the 74LS165 registers MSB first
   0 
   8 0 DO 
     P2S_SCK 0 digitalWrite 
-    P2S_SDA digitalRead 7 i - LSHIFT OR 
+    P2S_SDA digitalRead 7 i - LSHIFT OR \ shift the bit to the right position and OR it in
     P2S_SCK 1 digitalWrite 
   LOOP
   ~ 
