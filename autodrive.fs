@@ -1,9 +1,9 @@
 
 : freeSightLeft readlaser1 v_left_speed 50 + > ;
 
-: freeSightRight readlaser2 50 v_right_speed 50 + > ;
+: freeSightRight readlaser2 v_right_speed 50 + > ;
 
-: freeSightAhead readlaser0 v_speed_left v_speed_right 50 + + > ;
+: freeSightAhead readlaser0 v_left_speed v_right_speed 50 + + > ;
 
 : turnLeft
     100 speed left_fw right_bw 100 ms
@@ -24,8 +24,6 @@
     ELSE
         turnLeft
     THEN
-
-
 ;
 
 : drive
