@@ -1,40 +1,30 @@
 
-: freeSightLeft readlaser1 170 > ;
+: freeSightLeft readlaser1 v_left_speed 50 + > ;
 
-: freeSightRight readlaser2 170 > ;
+: freeSightRight readlaser2 50 v_right_speed 50 + > ;
 
-: freeSightAhead readlaser0 170 > ;
+: freeSightAhead readlaser0 v_speed_left v_speed_right 50 + + > ;
 
 : turnLeft
-    100 speed left_fw right_bw 500 ms
+    100 speed left_fw right_bw 100 ms
 ;
 
 : turnRight
-    100 speed right_fw left_bw 500 ms
+    100 speed right_fw left_bw 100 ms
 ;
 
 : backItUp
-    100 speed gear_bw 500 ms
+    150 speed gear_bw 500 ms
 ;
 
 : avoidObstacle
     backItUp
+    readLaser1 readLaser2 < IF \ 
+        turnRight
+    ELSE
+        turnLeft
+    THEN
 
-    freeSightRight invert freesightLeft and IF
-        turnLeft
-        exit
-    THEN
-    freeSightLeft invert freesightRight and IF
-        turnRight
-        exit
-    THEN
-    freeSightLeft IF
-        turnLeft
-        exit
-    THEN
-    FreeSightRight IF
-        turnRight
-    THEN
 
 ;
 
@@ -45,9 +35,11 @@
             speed 200 gear_fw
         THEN
         freeSightLeft invert IF
+            150 left_speed
             50 right_speed
         THEN
         freeSightRight invert IF
+            150 right_speed
             50 left_speed
         THEN
         freeSightAhead invert IF
