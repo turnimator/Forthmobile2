@@ -138,8 +138,9 @@ LED_BUILTIN output pinMode
     P2S_SCK 1 digitalWrite 10 ms
   LOOP
   FLIP 
-
 ;
+
+
 
 : writeS2P ( u u --)
     decimal
@@ -289,4 +290,4 @@ blinkoutputs
 
 setupservo
 setuplaser
-
+setupcompass
