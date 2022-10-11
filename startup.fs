@@ -120,27 +120,32 @@ LED_BUILTIN output pinMode
 
 : readRegs
    \ Read the 74LS165 registers MSB first
+    decimal
+    P2S_CE 1 digitalWrite     \ disable clock 
+    20 ms                     \ wait one cycle
+    P2S_SHLD 0 digitalWrite \ load data
+    30 ms
+    P2S_SHLD 1 digitalWrite  \ 
+    40 ms \ wait two cycles before enabling the clock
+    P2S_CE 0 digitalWrite \ enable clock
+    20 ms
+    P2S_SCK 1 digitalWrite \ set clock HIGH to prepare for shift
 
-  P2S_CE 1 digitalWrite     \ disable clock 
-  20 ms                     \ wait one cycle
-  P2S_SHLD 0 digitalWrite \ load data
-  10 ms
-  P2S_SHLD 1 digitalWrite  \ 
-  40 ms \ wait two cycles before enabling the clock
-  P2S_CE 0 digitalWrite \ enable clock
-  P2S_SCK 1 digitalWrite \ set clock HIGH to prepare for shift
 
-
-  0 \ put the result on the stack
-  24 0 DO 
-    P2S_SCK 0 digitalWrite 10 ms
-    P2S_SDA digitalRead 7 i - LSHIFT OR \ shift the bit to the right position 
-    P2S_SCK 1 digitalWrite 10 ms
-  LOOP
-  FLIP 
+    0 \ put the result on the stack
+    24 0 DO 
+        P2S_SCK 0 digitalWrite 10 ms
+        P2S_SDA digitalRead 24 LSHIFT OR \ or into msb
+        RSHIFT                  \ shift result right
+        P2S_SCK 1 digitalWrite 10 ms
+    LOOP
+    FLIP 
 ;
 
-
+: .rregs 
+    readboard hex .
+    decimal
+;
 
 : writeS2P ( u u --)
     decimal
@@ -206,7 +211,7 @@ LED_BUILTIN output pinMode
 
  decimal 
 
-: .regs
+: .wregs
   binary
  ." outreg1 " outreg1 . cr 
  ." outreg2 " outreg2 . cr 
@@ -246,7 +251,7 @@ blinkoutputs
 ;
 
 : speed ( uspeed --)
-  dup dup to v_right_speed to v_left_speed 1 swap ledcwrite 0 swap ledcwrite
+    dup left_speed right_speed
  ;
 
 : don ( uledno -- )
