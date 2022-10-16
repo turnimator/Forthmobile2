@@ -1,13 +1,13 @@
 
-: freeSightLeft readlaser1 v_left_speed 50 + > ;
+: freeSightLeft readlaser1 150 > ;
 
 : tooCloseLeft readlaser1 100 < ;
 
-: freeSightRight readlaser2 v_right_speed 50 + > ;
+: freeSightRight readlaser2 150 > ;
 
 : tooCloseRight readlaser2 100 < ;
 
-: freeSightAhead readlaser0 v_left_speed v_right_speed 50 + + > ;
+: freeSightAhead readlaser0 300 > ;
 
 : obstacleAhead readlaser0 200 < ;
 
@@ -47,7 +47,7 @@
         ELSE
             speed 100
         THEN
-        avoidObstacle
+
         freeSightLeft invert IF
             150 left_speed
             50 right_speed
@@ -58,9 +58,10 @@
             50 left_speed
             100 ms
         THEN
-       
+        avoidObstacle       
         .board
     LOOP
     stop
 ;
+
 
