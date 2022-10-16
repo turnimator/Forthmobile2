@@ -1,8 +1,6 @@
 
 
 
-
-
 2 constant LED_BUILTIN
 
 \ 74165 Parallel to serial
@@ -142,11 +140,24 @@ LED_BUILTIN output pinMode
     FLIP 
 ;
 
-: .rregs 
-    readboard hex .
+: .rregs \ unused 8 msb, used 24 bits: right wheel(8) left wheel(8) inputs(8)
+    readboard binary .
     decimal
-;
+	;
 
+: get_left_wheel ( u--b )
+	8 rshift 255 and
+	;
+
+: get_right_wheel ( u--b )
+	16 rshift 255 and
+	;
+
+: get_inputs ( u -- b)
+	255 and
+	;
+	
+	
 : writeS2P ( u u --)
     decimal
     S2P_LATCH 0 digitalWrite
@@ -170,9 +181,9 @@ LED_BUILTIN output pinMode
 ;
 
 : .board
-  readp2s
-   binary . ." , "
-   decimal . ." , " . cr
+	readboard dup dup get_right_wheel decimal .
+	get_left_wheel decimal .
+	get_inputs binary . cr
 ;
 
 
@@ -296,3 +307,4 @@ blinkoutputs
 setupservo
 setuplaser
 setupcompass
+
