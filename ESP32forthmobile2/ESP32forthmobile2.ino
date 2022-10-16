@@ -185,6 +185,44 @@ typedef int64_t dcell_t;
 #endif
 #define INTERRUPT_STACK_CELLS 64
 
+              ////////// ATLEHACK TO READ ESP SUPEREXPANDER 74LS165 INPUT REGISTERS MSB FIRST ///////
+
+#define P2S_CE 18   // set high when P2S_SCK is HIGH to disable clock
+#define P2S_SHLD 19 // Shift=1, load=0
+#define P2S_SCK 17
+#define P2S_SDA 23
+
+void  setupBoard() {
+   pinMode(P2S_SHLD, OUTPUT);
+   pinMode(P2S_CE, OUTPUT);
+   pinMode(P2S_SCK , OUTPUT);
+   pinMode(P2S_SDA, INPUT);
+}
+
+int readBoard() {
+    digitalWrite(P2S_CE, HIGH); // disable clock
+    delay(20);
+    digitalWrite(P2S_SHLD, LOW); // load data
+    delay(40);
+    digitalWrite(P2S_SHLD, HIGH);
+    delay(40); // wait two cycles before enabling the clock
+    digitalWrite(P2S_CE, LOW);  // enable clock
+    delay(20);
+    digitalWrite(P2S_SCK, HIGH); // set clock HIGH to prepare for shift
+    int reg = 0;
+    for (int i = 0; i < 24; i++) {
+      digitalWrite(P2S_SCK, LOW);
+      if (digitalRead(P2S_SDA) == LOW) {
+        reg |= (1 << (23 -i));
+      }
+      digitalWrite(P2S_SCK, HIGH);
+    }
+    digitalWrite(P2S_CE, HIGH); // disable clock
+    return reg;
+}
+
+  ////////////////////////////////////////////////////////////////////
+
 #define PLATFORM_OPCODE_LIST \
   /* Memory Allocation */ \
   Y(MALLOC, SET malloc(n0)) \
@@ -194,7 +232,7 @@ typedef int64_t dcell_t;
   Y(heap_caps_free, heap_caps_free(a0); DROP) \
   Y(heap_caps_realloc, \
     tos = (cell_t) heap_caps_realloc(a2, n1, n0); NIPn(2)) \
-   X("FLIP", BIT_FLIP, tos = ~tos;) \
+  X("FLIP", BIT_FLIP, tos = ~tos;) \
   /* Serial */ \
   X("Serial.begin", SERIAL_BEGIN, Serial.begin(tos); DROP) \
   X("Serial.end", SERIAL_END, Serial.end()) \
@@ -208,6 +246,8 @@ typedef int64_t dcell_t;
   Y(digitalRead, n0 = digitalRead(n0)) \
   Y(analogRead, n0 = analogRead(n0)) \
   Y(pulseIn, n0 = pulseIn(n2, n1, n0); NIPn(2)) \
+  Y(shiftIn, n0 = shiftIn(n2, n1, n0); NIPn(2)) \
+  Y(readBoard, PUSH(readBoard())) \
   Y(dacWrite, dacWrite(n1, n0); DROPn(2)) \
   Y(ledcSetup, \
     n0 = (cell_t) (1000000 * ledcSetup(n2, n1 / 1000.0, n0)); NIPn(2)) \
@@ -633,11 +673,11 @@ typedef int64_t dcell_t;
   Y(setuplaser, setuplaser()) \
   Y(readlaser0, PUSH readlaser0()) \
   Y(readlaser1, PUSH readlaser1()) \
-  Y(readlaser2, PUSH readlaser2()) 
+  Y(readlaser2, PUSH readlaser2())
 
 #endif
 
-/////////// Servo controller support //////////////////////
+  /////////// Servo controller support //////////////////////
 
 #ifdef ENABLE_SERVO_CONTROLLER_SUPPORT
 
@@ -645,63 +685,69 @@ typedef int64_t dcell_t;
 #include <Adafruit_PWMServoDriver.h>
 #define SERVOMIN  150 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  600 // This is the 'maximum' pulse length count (out of 4096)
+#define SERVOCENTER 340 // Observed
 #define USMIN  600 // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
 #define USMAX  2400 // This is the rounded 'maximum' microsecond length based on the maximum pulse of 600
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
-// called this way, it uses the default address 0x40
-Adafruit_PWMServoDriver servo;
+  // called this way, it uses the default address 0x40
+  Adafruit_PWMServoDriver servo;
 
-void setupServo(){
-  servo.begin();
-  servo.setOscillatorFrequency(27000000);
-  servo.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+  void setupServo() {
+    servo.begin();
+    servo.setOscillatorFrequency(27000000);
+    servo.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
-  delay(10);
-  for (int i = 0; i < 16; i++){
-    setServo(i, (SERVOMIN + SERVOMAX) / 2);
+    delay(10);
+    for (int i = 0; i < 16; i++) {
+      setServo(i, SERVOCENTER);
+    }
   }
-}
 
-void setServo(int servoNum, int pwm){
-  if (servoNum < 0 || servoNum > 15){
-    return; // Outside of range
+  void setServo(int servoNum, int pwm) {
+    if (servoNum < 0 || servoNum > 15) {
+      return; // Outside of range
+    }
+    if (pwm < SERVOMIN) {
+      pwm = SERVOMIN;
+    }
+    if (pwm > SERVOMAX) {
+      pwm = SERVOMAX;
+    }
+    servo.setPWM(servoNum, 0, pwm);
   }
-  if (pwm < SERVOMIN){
-    pwm = SERVOMIN;
-  }
-  if (pwm > SERVOMAX){
-    pwm = SERVOMAX;
-  }
-  servo.setPWM(servoNum, 0, pwm);
-}
+
 
 #define OPTIONAL_SERVO_CONTROLLER_SUPPORT \
-Y(setupservo, setupServo()) \
-Y(servopwm, setServo(n1, n0); DROPn(2)) 
+  Y(setupservo, setupServo()) \
+  Y(servopwm, setServo(n1, n0); DROPn(2)) \
+  Y(servocenter,  setServo(n0, SERVOCENTER); DROP)  \
+  Y(servodeg, setServo(n1, map(n0, -90, 90, SERVOMIN, SERVOMAX)); DROPn(2))
 
 #else
 #define OPTIONAL_SERVO_CONTROLLER_SUPPORT
 
 #endif
 
-///////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////
 
-//////// QMC5883 Compass //////////////////////////////////
+  //////// QMC5883 Compass //////////////////////////////////
 #ifdef ENABLE_QMC5883_SUPPORT
 
 #include <QMC5883LCompass.h>
 
-QMC5883LCompass compass;
+  QMC5883LCompass compass;
 
-void setUpCompass(){
-  compass.init();
-}
+  void setUpCompass() {
+    compass.init();
+    compass.setSmoothing(10, true);
+  }
 
 
 #define OPTIONAL_QMC5883_SUPPORT \
-X("setupCompass", SETUP_COMPASS, setUpCompass() ) \
-X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compass.getY()); PUSH(compass.getZ()) ) 
+  X("setupCompass", SETUP_COMPASS, setUpCompass() ) \
+  X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compass.getY()); PUSH(compass.getZ()) ) \
+  X("getazimuth", GET_AZIMUTH, compass.read(); PUSH(compass.getAzimuth()))
 
 #else
 #define OPTIONAL_QMC5883_SUPPORT
@@ -2223,6 +2269,7 @@ X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compas
   }
 
   void setup() {
+    setupBoard();
     cell_t *heap = (cell_t *) malloc(HEAP_SIZE);
     forth_init(0, 0, heap, boot, sizeof(boot));
   }
