@@ -184,6 +184,7 @@ LED_BUILTIN output pinMode
 	readboard dup dup get_right_wheel decimal .
 	get_left_wheel decimal .
 	get_inputs binary . cr
+	decimal
 ;
 
 
