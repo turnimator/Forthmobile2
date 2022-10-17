@@ -201,21 +201,24 @@ void  setupBoard() {
 
 int readBoard() {
     digitalWrite(P2S_CE, HIGH); // disable clock
-    delay(20);
+    delay(2);
     digitalWrite(P2S_SHLD, LOW); // load data
-    delay(40);
+    delay(2);
     digitalWrite(P2S_SHLD, HIGH);
-    delay(40); // wait two cycles before enabling the clock
+    delay(2); // wait two cycles before enabling the clock
     digitalWrite(P2S_CE, LOW);  // enable clock
-    delay(20);
+    delay(2);
     digitalWrite(P2S_SCK, HIGH); // set clock HIGH to prepare for shift
+    delay(2);
     int reg = 0;
     for (int i = 0; i < 24; i++) {
       digitalWrite(P2S_SCK, LOW);
+      delay(2);
       if (digitalRead(P2S_SDA) == LOW) {
         reg |= (1 << (23 -i));
       }
       digitalWrite(P2S_SCK, HIGH);
+      delay(2);
     }
     digitalWrite(P2S_CE, HIGH); // disable clock
     return reg;
