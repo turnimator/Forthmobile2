@@ -230,8 +230,6 @@ LED_BUILTIN output pinMode
  decimal
 ; 
 
-
-
 : blinkoutputs
    decimal
   16 0 DO
@@ -308,4 +306,21 @@ blinkoutputs
 setupservo
 setuplaser
 setupcompass
+
+
+: turnto ( ucompassdirection -- )
+    100 speed
+    
+	 10000 0 DO
+		dup dup getazimuth 
+		< IF left_fw right_bw 
+		ELSE right_fw left_bw
+		THEN
+		getazimuth - abs 5 < IF
+			LEAVE
+		THEN
+	LOOP
+	stop
+	drop
+;
 
