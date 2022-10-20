@@ -1,102 +1,119 @@
 
 300 constant far
-150 constant near
+100 constant near
 
 1 constant rightservo
 2 constant leftservo
 0 constant centerservo
 
-: freeSightLeft readlaser1 far > ;
+\ indices into states
+0 constant IDRIVING
+1 constant IOBSTRUCTED
+2 constant ICRASHED
+3 constant IBOXED_IN
+4 constant IOFF_COURSE
 
-: tooCloseLeft readlaser1 near < ;
 
-: freeSightRight readlaser2 far > ;
+: leftSight? readlaser1 ;
+: rightSight? readlaser2 ;
 
-: tooCloseRight readlaser2 near < ;
+: freeSightLeft? readlaser1 far > ;
 
-: freeSightAhead readlaser0 far > ;
+: tooCloseLeft? readlaser1 near < ;
 
-: obstacleAhead readlaser0 far < ;
+: freeSightRight? readlaser2 far > ;
+
+: tooCloseRight? readlaser2 near < ;
+
+: freeSightAhead? readlaser0 far > ;
+
+: freeSight? freeSightLeft? freeSightRight? freeSightAhead? and and ;
+
+: obstacleAhead? readlaser0 near < ;
 
 : turnLeft
-    100 speed left_fw right_bw 200 ms
+    100 speed left_bw right_fw 200 ms
 ;
 
 : turnRight
-    100 speed right_fw left_bw 200 ms
+    100 speed right_bw left_fw 200 ms
 ;
 
-: backItUp ( -- )
-
-    150 speed gear_bw 
-    100 0 DO
-		10 ms
-		readBoard getInputs 9 = INVERT LEAVE
-    LOOP
-    stop
-;
-
-: findFreePath ( -- )
-
-    100 speed
-    rightservo -45 servodeg
-    leftservo 45 servodeg
-    
-	 10000 0 DO
-		readLaser1 readLaser2 > 
-		IF left_fw right_bw 
-		ELSE right_fw left_bw
-		THEN
-		freeSightAhead IF
-			LEAVE
-		THEN
-	LOOP
+: DRIVING 
+	." driving ... "
 	servocenter
-	left_fw right_fw
+	obstacleAhead? IF
+		IOBSTRUCTED
+		EXIT
+	THEN
+	\ Stay in the middle of the road
+	rightSight? leftSight? > IF
+		75 right_speed 
+		100 left_speed 
+	THEN
+	rightSight? leftSight? < IF
+		75 left_speed 
+		100 right_speed 
+	THEN
+	gear_fw
+	freeSightAhead? IF
+		200 speed
+	ELSE
+		100 speed
+	THEN
+	IDRIVING
 ;
 
-
-: avoidObstacle
-
-        obstacleAhead IF
-            backItUp
-            findFreePath
-        THEN  
-
-        tooCloseLeft IF
-            150 speed left_fw right_bw 300 ms
-        THEN
-
-        tooCloseRight IF
-            150 speed left_bw right_fw 300 ms
-        THEN
-
-        
+: lookAround ( -- freeAngle )
+	leftservo 45 servodeg freeSightLeft? IF
+		servocenter
+		turnleft
+		IDRIVING
+		EXIT
+	THEN
+	rightservo -45 servodeg freeSightRight? IF
+		servocenter
+		turnRight
+		IDRIVING
+		EXIT
+	THEN
+	gear_bw
+	100 speed 300 ms
+	IOBSTRUCTED
 ;
 
-: drive
-    150 speed
-    100 0 DO
-        freeSightLeft freeSightRight freeSightAhead and and IF
-            150 speed gear_fw
-        ELSE
-            100 speed
-        THEN
-
-        freeSightLeft invert IF
-            150 left_speed
-            50 right_speed
-            300 ms
-        THEN
-        freeSightRight invert IF
-            150 right_speed
-            50 left_speed
-            300 ms
-        THEN
-        avoidObstacle 
-        left_fw
-        right_fw      
-        .board
-    LOOP
-    stop
+: OBSTRUCTED
+	." OBSTRUCTED" CR
+	STOP
+	lookAround
+	IOBSTRUCTED
 ;
+
+: CRASHED
+	0 speed
+	stop
+	ICRASHED
+; 
+
+: BOXED_IN
+	IOBSTRUCTED
+;
+
+: OFF_COURSE
+	IDRIVING
+;
+
+CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , OFF_COURSE ,
+
+: run-state ( state --) 
+  cells states + @ execute ; 
+
+: run  
+0 
+10 0 DO
+	run-state
+	.s
+	LOOP
+	.s
+;
+
