@@ -156,7 +156,10 @@ LED_BUILTIN output pinMode
 : get_inputs ( u -- b)
 	255 and
 	;
-	
+
+: bitset? ( byte bitnum -- f_is_bit_number_set )
+	RSHIFT 1 and 0 = INVERT
+;
 	
 : writeS2P ( u u --)
     decimal
@@ -233,10 +236,7 @@ LED_BUILTIN output pinMode
 : blinkoutputs
    decimal
   16 0 DO
-    i outputon writeboard
-    100 ms
-    i outputoff writeboard
-    100 ms
+    i outputon writeboard 100 ms i outputoff writeboard 100 ms
   LOOP
 ;
 
@@ -309,18 +309,22 @@ setupcompass
 
 
 : turnto ( ucompassdirection -- )
-    100 speed
+    150 speed
     
-	 10000 0 DO
-		dup dup getazimuth 
-		< IF left_fw right_bw 
-		ELSE right_fw left_bw
+	BEGIN
+		PAUSE
+		150 speed
+		dup 
+		dup getazimuth < 
+		IF 
+			left_fw right_bw 
+		ELSE 
+			right_fw left_bw
 		THEN
-		getazimuth - abs 5 < IF
-			LEAVE
-		THEN
-	LOOP
+		getazimuth - abs 5 < 
+	UNTIL
+	DROP
 	stop
-	drop
+	
 ;
 
