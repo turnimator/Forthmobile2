@@ -1,6 +1,6 @@
 
-300 constant far
-100 constant near
+350 constant far
+200 constant near
 
 1 constant rightservo
 2 constant leftservo
@@ -41,52 +41,65 @@
 
 : DRIVING 
 	." driving ... "
-	servocenter
-	obstacleAhead? IF
-		IOBSTRUCTED
-		EXIT
-	THEN
+	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
+	.s ." servos centered. Checking sides "
 	\ Stay in the middle of the road
-	rightSight? leftSight? > IF
-		75 right_speed 
+	tooCloseLeft? IF
+		." Too close on the left. Turning right "
+		50 right_speed 
 		100 left_speed 
 	THEN
-	rightSight? leftSight? < IF
-		75 left_speed 
+	tooCloseRight? IF
+		." Too close on the right. Turning left "
+		50 left_speed 
 		100 right_speed 
 	THEN
+	.s ." Sides checked. Gear Forward, checking for free sight ahead "
 	gear_fw
 	freeSightAhead? IF
-		200 speed
+		150 speed
 	ELSE
 		100 speed
 	THEN
-	IDRIVING
+	.s ." Checking for obstacle "
+	obstacleAhead? IF
+		IOBSTRUCTED
+		.s
+	ELSE
+		IDRIVING
+		.s
+	THEN
 ;
 
 : lookAround ( -- freeAngle )
-	leftservo 45 servodeg freeSightLeft? IF
-		servocenter
+	.s ." Looking around "
+	rightservo -45 servodeg 
+	leftservo 45 servodeg 
+	freeSightLeft? IF
+		." Free sight left, turning left "
 		turnleft
-		IDRIVING
-		EXIT
+	ELSE
+		freeSightRight? IF
+		." Free sight right, turning right "
+			turnRight
+		THEN
 	THEN
-	rightservo -45 servodeg freeSightRight? IF
-		servocenter
-		turnRight
-		IDRIVING
-		EXIT
-	THEN
-	gear_bw
-	100 speed 300 ms
-	IOBSTRUCTED
+	.s ." Centering servos, looking for obstacle ahead "
+	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
+
+	obstacleAhead? INVERT 
 ;
 
 : OBSTRUCTED
 	." OBSTRUCTED" CR
-	STOP
-	lookAround
-	IOBSTRUCTED
+	gear_bw
+	150 speed
+	
+	lookAround IF
+		IDRIVING
+	ELSE
+		IOBSTRUCTED
+	THEN
 ;
 
 : CRASHED
@@ -110,10 +123,11 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , OFF_COURSE ,
 
 : run  
 0 
-10 0 DO
+100 0 DO
 	run-state
 	.s
 	LOOP
 	.s
+	stop
 ;
 
