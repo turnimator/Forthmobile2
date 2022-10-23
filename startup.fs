@@ -274,19 +274,19 @@ blinkoutputs
   writeboard
 ;
 
-: right_fw
+: left_fw
    6 doff 7 don
 ;
 
-: right_bw
+: left_bw
     7 doff 6 don
 ;
 
-: left_bw
+: right_bw
     4 doff 5 don
 ;
 
-: left_fw
+: right_fw
     5 doff 4 don
 ;
 
