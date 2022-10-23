@@ -1,6 +1,6 @@
 
-350 constant far
-200 constant near
+400 constant far
+250 constant near
 
 1 constant rightservo
 2 constant leftservo
@@ -40,19 +40,19 @@
 ;
 
 : DRIVING 
-	." driving ... "
+	." DRIVING "
 	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
 	.s ." servos centered. Checking sides "
 	\ Stay in the middle of the road
 	tooCloseLeft? IF
 		." Too close on the left. Turning right "
 		50 right_speed 
-		100 left_speed 
+		150 left_speed 
 	THEN
 	tooCloseRight? IF
 		." Too close on the right. Turning left "
 		50 left_speed 
-		100 right_speed 
+		150 right_speed 
 	THEN
 	.s ." Sides checked. Gear Forward, checking for free sight ahead "
 	gear_fw
@@ -64,15 +64,14 @@
 	.s ." Checking for obstacle "
 	obstacleAhead? IF
 		IOBSTRUCTED
-		.s
 	ELSE
 		IDRIVING
-		.s
 	THEN
 ;
 
-: lookAround ( -- freeAngle )
-	.s ." Looking around "
+: getOutOfHere ( -- freeAngle )
+	.s ." Get out of here "
+	
 	rightservo -45 servodeg 
 	leftservo 45 servodeg 
 	freeSightLeft? IF
@@ -91,11 +90,12 @@
 ;
 
 : OBSTRUCTED
-	." OBSTRUCTED" CR
+	." OBSTRUCTED " CR
+	." Back it up a bit "
 	gear_bw
 	150 speed
-	
-	lookAround IF
+	.s
+	getOutOfHere IF 
 		IDRIVING
 	ELSE
 		IOBSTRUCTED
