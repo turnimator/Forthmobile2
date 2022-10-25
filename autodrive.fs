@@ -6,12 +6,18 @@
 2 constant leftservo
 0 constant centerservo
 
-\ indices into states
+\ BUG: For logging, just use the FORTH words. preceded by .s
+
+\ indices into states. States are declared near the bottom. If you add new states, add them at the end or you have to
+\ renumber everything.
 0 constant IDRIVING
 1 constant IOBSTRUCTED
 2 constant ICRASHED
 3 constant IBOXED_IN
 4 constant IOFF_COURSE
+5 constant ITURNING_LEFT
+6 constant ITURNING_RIGHT
+7 constant IREVERSING
 
 
 : leftSight? readlaser1 ;
@@ -41,18 +47,17 @@
 
 : DRIVING 
 	." DRIVING "
+	150 speed
 	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
 	.s ." servos centered. Checking sides "
 	\ Stay in the middle of the road
 	tooCloseLeft? IF
 		." Too close on the left. Turning right "
 		50 right_speed 
-		150 left_speed 
 	THEN
 	tooCloseRight? IF
 		." Too close on the right. Turning left "
 		50 left_speed 
-		150 right_speed 
 	THEN
 	.s ." Sides checked. Gear Forward, checking for free sight ahead "
 	gear_fw
@@ -70,12 +75,12 @@
 ;
 
 : getOutOfHere ( -- freeAngle )
-	.s ." Get out of here "
+	.s ." Get out of here. Spread servos 45 deg to look to the sides. " cr
 	
 	rightservo -45 servodeg 
 	leftservo 45 servodeg 
 	freeSightLeft? IF
-		." Free sight left, turning left "
+		." Free sight left, turning left " 
 		turnleft
 	ELSE
 		freeSightRight? IF
@@ -83,7 +88,7 @@
 			turnRight
 		THEN
 	THEN
-	.s ." Centering servos, looking for obstacle ahead "
+	.s ." Centering servos, looking for obstacle ahead " cr
 	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
 
 	obstacleAhead? INVERT 
@@ -102,6 +107,12 @@
 	THEN
 ;
 
+: TURNING_LEFT
+;
+
+: TURNING_RIGHT
+;
+
 : CRASHED
 	0 speed
 	stop
@@ -116,14 +127,17 @@
 	IDRIVING
 ;
 
-CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , OFF_COURSE ,
+: REVERSING
+;
+
+CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE , ' TURNING_LEFT, ' TURNING_RIGHT, ' REVERSING
 
 : run-state ( state --) 
   cells states + @ execute ; 
 
 : run  
 0 
-100 0 DO
+200 0 DO
 	run-state
 	.s
 	LOOP
