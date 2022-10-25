@@ -20,6 +20,8 @@
 7 constant IREVERSING
 
 
+0 value desired_course
+
 : leftSight? readlaser1 ;
 : rightSight? readlaser2 ;
 
@@ -36,6 +38,10 @@
 : freeSight? freeSightLeft? freeSightRight? freeSightAhead? and and ;
 
 : obstacleAhead? readlaser0 near < ;
+
+: onCourse?
+	desired_course getazimuth - abs 10 < ;
+;
 
 : turnLeft
     100 speed left_bw right_fw 200 ms
@@ -61,6 +67,9 @@
 	THEN
 	.s ." Sides checked. Gear Forward, checking for free sight ahead "
 	gear_fw
+	onCourse? INVERT IF
+		desired_course turnto
+	THEN
 	freeSightAhead? IF
 		150 speed
 	ELSE
@@ -69,9 +78,9 @@
 	.s ." Checking for obstacle "
 	obstacleAhead? IF
 		IOBSTRUCTED
-	ELSE
-		IDRIVING
+		EXIT
 	THEN
+	IDRIVING
 ;
 
 : getOutOfHere ( -- freeAngle )
@@ -120,14 +129,22 @@
 ; 
 
 : BOXED_IN
-	IOBSTRUCTED
+	IREVERSING
 ;
 
 : OFF_COURSE
+	desired_course turnto
 	IDRIVING
 ;
 
 : REVERSING
+	." REVERSING " 
+	gear_bw 150 speed
+	readboard get_inputs 0 = IF
+		ICRASHED
+	ELSE
+		IOBSTRUCTED
+	THEN
 ;
 
 CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE , ' TURNING_LEFT, ' TURNING_RIGHT, ' REVERSING
@@ -136,6 +153,7 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
   cells states + @ execute ; 
 
 : run  
+getazimuth to desired_course
 0 
 200 0 DO
 	run-state
