@@ -67,9 +67,6 @@
 	THEN
 	.s ." Sides checked. Gear Forward, checking for free sight ahead "
 	gear_fw
-	onCourse? INVERT IF
-		desired_course turnto
-	THEN
 	freeSightAhead? IF
 		150 speed
 	ELSE
@@ -80,6 +77,13 @@
 		IOBSTRUCTED
 		EXIT
 	THEN
+
+	\ If there are no obstacles, we can check for correct course
+	onCourse? INVERT IF
+		." Correcting course "
+		desired_course turnto
+	THEN
+
 	IDRIVING
 ;
 
@@ -155,11 +159,19 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 : run  
 getazimuth to desired_course
 0 
-200 0 DO
+100 0 DO
+	run-state
+	.s
+	LOOP
+	.s
+	
+	desired_course 180 + 360 mod to desired_course \ go half the way, then turn back
+100 0 DO
 	run-state
 	.s
 	LOOP
 	.s
 	stop
+
 ;
 
