@@ -256,6 +256,16 @@ blinkoutputs
    dup to v_left_speed 0 swap ledcwrite 
 ;
 
+: left_speed?
+	v_left_speed
+;
+
+
+: right_speed?
+	v_right_speed
+;
+
+
 : right_speed ( uspeed -- )
     dup to v_right_speed 1 swap ledcwrite 
 ;
@@ -264,6 +274,11 @@ blinkoutputs
     dup left_speed right_speed
  ;
 
+: speed?
+	left_speed right_speed max
+	;
+	
+	
 : don ( uledno -- )
   outputon
   writeboard
@@ -312,7 +327,7 @@ setupcompass
 : turnto ( ucompassdirection -- )
     150 speed
 		
-	
+	dup
 	dup getazimuth < 
 	IF 
 		left_fw right_bw 
@@ -325,7 +340,7 @@ setupcompass
 		dup
 		getazimuth - abs 5 < 
 	UNTIL
-	DROP
+	DROP DROP
 	stop
 	
 ;
