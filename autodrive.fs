@@ -51,6 +51,20 @@
     100 speed right_bw left_fw 200 ms
 ;
 
+: correct_course
+	." Correcting course. Desired Actual "
+	desired_course dup . getazimuth dup . - dup
+	." Deviation " . 
+	0 > IF
+		." Turning right "
+		right_speed? 20 - 0 min right_speed
+	ELSE
+	." Turning left "
+		left_speed? 20 - 0 min left_speed
+	THEN
+	." Course adjusted" cr
+;
+
 : DRIVING 
 	." DRIVING "
 	150 speed
@@ -81,7 +95,7 @@
 	\ If there are no obstacles, we can check for correct course
 	onCourse? INVERT IF
 		." Correcting course "
-		desired_course turnto
+		correct_course
 	THEN
 
 	IDRIVING
@@ -137,7 +151,7 @@
 ;
 
 : OFF_COURSE
-	desired_course turnto
+	
 	IDRIVING
 ;
 
@@ -157,6 +171,8 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
   cells states + @ execute ; 
 
 : run  
+getazimuth	. \ Kick it a couple of times to wake it up
+getazimuth .
 getazimuth to desired_course
 0 
 100 0 DO
@@ -166,6 +182,8 @@ getazimuth to desired_course
 	.s
 	
 	desired_course 180 + 360 mod to desired_course \ go half the way, then turn back
+	." Traveled half way. Turning back" cr
+	0
 100 0 DO
 	run-state
 	.s
