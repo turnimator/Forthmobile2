@@ -94,11 +94,10 @@
 
 	\ If there are no obstacles, we can check for correct course
 	onCourse? INVERT IF
-		." Correcting course "
-		correct_course
+		IOFFCOURSE
+	ELSE
+		IDRIVING
 	THEN
-
-	IDRIVING
 ;
 
 : getOutOfHere ( -- freeAngle )
@@ -151,8 +150,16 @@
 ;
 
 : OFF_COURSE
+	." Correcting course "
+		correct_course
 	
-	IDRIVING
+	\ If we get back on course, get back to driving
+	onCourse? IF
+		IDRIVING	
+	ELSE
+		IOFFCOURSE
+	THEN
+
 ;
 
 : REVERSING
