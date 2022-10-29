@@ -329,6 +329,7 @@ setupcompass
 		
 	dup
 	dup getazimuth < 
+	
 	IF 
 		left_fw right_bw 
 	ELSE 
@@ -339,6 +340,7 @@ setupcompass
 		PAUSE
 		dup
 		getazimuth - abs 5 < 
+		
 	UNTIL
 	DROP DROP
 	stop
