@@ -15,9 +15,7 @@
 2 constant ICRASHED
 3 constant IBOXED_IN
 4 constant IOFF_COURSE
-5 constant ITURNING_LEFT
-6 constant ITURNING_RIGHT
-7 constant IREVERSING
+5 constant IREVERSING
 
 
 0 value desired_course
@@ -43,22 +41,29 @@
 	desired_course getazimuth - abs 10 < ;
 ;
 
+: badlyOffCourse?
+	desired_course getazimuth - abs 100 > ;
+;
+
 : turnLeft
     100 speed left_bw right_fw 200 ms
+    getazimuth getazimuth DROP DROP
 ;
 
 : turnRight
     100 speed right_bw left_fw 200 ms
+    getazimuth getazimuth DROP DROP
 ;
 
 : correct_course
 	." Correcting course. Desired Actual "
 	desired_course dup . getazimuth dup . - dup
 	." Deviation " . 
-	0 > IF
+	dup 20 > IF
 		." Turning right "
 		right_speed? 20 - 0 min right_speed
-	ELSE
+	THEN
+	-20 < IF
 	." Turning left "
 		left_speed? 20 - 0 min left_speed
 	THEN
@@ -66,8 +71,10 @@
 ;
 
 : DRIVING 
-	." DRIVING "
+	cr .s ." DRIVING "
 	150 speed
+	getazimuth .
+	correct_course
 	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
 	.s ." servos centered. Checking sides "
 	\ Stay in the middle of the road
@@ -88,20 +95,23 @@
 	THEN
 	.s ." Checking for obstacle "
 	obstacleAhead? IF
+		." Obstacle detected" 
 		IOBSTRUCTED
-		EXIT
-	THEN
-
-	\ If there are no obstacles, we can check for correct course
-	onCourse? INVERT IF
-		IOFFCOURSE
 	ELSE
-		IDRIVING
+		." No obstacle. Checking course."
+		\ If there are no obstacles, we can check for correct course
+		onCourse? INVERT IF
+			." Off course"
+			IOFF_COURSE
+		ELSE
+			." On course. Driving ... "
+			IDRIVING
+		THEN
 	THEN
 ;
 
-: getOutOfHere ( -- freeAngle )
-	.s ." Get out of here. Spread servos 45 deg to look to the sides. " cr
+: getOutOfHere ( -- f )
+	.s ." getOutOfHere Spread servos 45 deg to look to the sides. " cr
 	
 	rightservo -45 servodeg 
 	leftservo 45 servodeg 
@@ -121,22 +131,16 @@
 ;
 
 : OBSTRUCTED
-	." OBSTRUCTED " CR
-	." Back it up a bit "
+	cr .s ." OBSTRUCTED " 
+	." Backing it up a bit " 
 	gear_bw
-	150 speed
-	.s
+	150 speed 500 ms
+	
 	getOutOfHere IF 
 		IDRIVING
 	ELSE
 		IOBSTRUCTED
 	THEN
-;
-
-: TURNING_LEFT
-;
-
-: TURNING_RIGHT
 ;
 
 : CRASHED
@@ -150,21 +154,25 @@
 ;
 
 : OFF_COURSE
-	." Correcting course "
-		correct_course
+	cr .s ." OFF_COURSE "
 	
+	freeSightAhead? INVERT IF
+		gear_bw 150 speed 300 ms stop
+	THEN
 	\ If we get back on course, get back to driving
-	onCourse? IF
-		IDRIVING	
+	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
+	badlyOffCourse? IF
+		IOFF_COURSE
 	ELSE
-		IOFFCOURSE
+		IDRIVING
 	THEN
 
 ;
 
 : REVERSING
-	." REVERSING " 
+	cr .s ." REVERSING " 
 	gear_bw 150 speed
+	cr
 	readboard get_inputs 0 = IF
 		ICRASHED
 	ELSE
@@ -172,31 +180,35 @@
 	THEN
 ;
 
-CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE , ' TURNING_LEFT, ' TURNING_RIGHT, ' REVERSING
+CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE , ' REVERSING , 
+
+0 value vend_run
+0 value vstate
 
 : run-state ( state --) 
   cells states + @ execute ; 
+  getazimuth DROP
+  getazimuth DROP
+  getazimuth DROP
+  
+	." Orientation:" getazimuth . ." Type X run to run for X seconds."
 
-: run  
-getazimuth	. \ Kick it a couple of times to wake it up
-getazimuth .
-getazimuth to desired_course
-0 
-100 0 DO
-	run-state
-	.s
-	LOOP
-	.s
-	
-	desired_course 180 + 360 mod to desired_course \ go half the way, then turn back
-	." Traveled half way. Turning back" cr
-	0
-100 0 DO
-	run-state
-	.s
-	LOOP
+: run ( uhowlong -- )
+	1000 * ms-ticks + to vend_run
+	getazimuth .
+	getazimuth .
+	getazimuth .
+	getazimuth .
+	getazimuth .
+	getazimuth .
+	getazimuth to desired_course
+	IDRIVING
+	BEGIN
+		run-state
+		.s
+	vend_run ms-ticks < UNTIL
 	.s
 	stop
-
+	." END OF RUN" CR
 ;
 
