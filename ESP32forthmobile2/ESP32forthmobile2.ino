@@ -2297,3 +2297,4 @@ typedef int64_t dcell_t;
   void loop() {
     g_sys.rp = forth_run(g_sys.rp);
   }
+
