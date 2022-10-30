@@ -192,14 +192,14 @@ typedef int64_t dcell_t;
 #define P2S_SCK 17
 #define P2S_SDA 23
 
-void  setupBoard() {
-   pinMode(P2S_SHLD, OUTPUT);
-   pinMode(P2S_CE, OUTPUT);
-   pinMode(P2S_SCK , OUTPUT);
-   pinMode(P2S_SDA, INPUT);
-}
+              void  setupBoard() {
+              pinMode(P2S_SHLD, OUTPUT);
+              pinMode(P2S_CE, OUTPUT);
+              pinMode(P2S_SCK , OUTPUT);
+              pinMode(P2S_SDA, INPUT);
+            }
 
-int readBoard() {
+  int readBoard() {
     digitalWrite(P2S_CE, HIGH); // disable clock
     delay(2);
     digitalWrite(P2S_SHLD, LOW); // load data
@@ -215,14 +215,14 @@ int readBoard() {
       digitalWrite(P2S_SCK, LOW);
       delay(2);
       if (digitalRead(P2S_SDA) == LOW) {
-        reg |= (1 << (23 -i));
+        reg |= (1 << (23 - i));
       }
       digitalWrite(P2S_SCK, HIGH);
       delay(2);
     }
     digitalWrite(P2S_CE, HIGH); // disable clock
     return reg;
-}
+  }
 
   ////////////////////////////////////////////////////////////////////
 
@@ -703,7 +703,8 @@ int readBoard() {
 
     delay(10);
     for (int i = 0; i < 16; i++) {
-      setServo(i, SERVOCENTER);
+      servo.setPWM(i, 0, SERVOCENTER);
+      delay(10);
     }
   }
 
@@ -746,11 +747,27 @@ int readBoard() {
     compass.setSmoothing(10, true);
   }
 
+  int getAzimuth() {
+     compass.read();
+      int mean = compass.getAzimuth();
+    
+    do {
+      compass.read();
+      int r1 = compass.getAzimuth();
+      compass.read();
+      int r2 = compass.getAzimuth();
+      compass.read();
+      int r3 = compass.getAzimuth();
+      mean = (r1 + r2 + r3) / 3;
+      compass.read();
+    } while (abs(compass.getAzimuth() - mean) > 3);
+    return mean;
+  }
 
 #define OPTIONAL_QMC5883_SUPPORT \
   X("setupCompass", SETUP_COMPASS, setUpCompass() ) \
   X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compass.getY()); PUSH(compass.getZ()) ) \
-  X("getazimuth", GET_AZIMUTH, compass.read(); PUSH(compass.getAzimuth()))
+  X("getazimuth", GET_AZIMUTH, compass.read(); PUSH(getAzimuth()))
 
 #else
 #define OPTIONAL_QMC5883_SUPPORT
