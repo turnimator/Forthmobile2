@@ -65,6 +65,7 @@
 \ get the sign
 \ get the absolute value
 \ if < -90 or > 90, negate sign
+
 	DUP 0 > SWAP  \ true if positive false if negative
 	abs  \ now we can work with abs value to see if we must flip the sign
 	DUP 20 < IF
@@ -84,7 +85,7 @@
 	leftOrRight? 
 	DUP 0 = IF
 		." inconsequential " cr
-		DROP
+		
 		.s  ." correct_course exit " cr
 		EXIT
 	THEN
@@ -234,15 +235,9 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 
 : run-state ( state --) 
   cells states + @ execute ; 
-  getazimuth DROP
-  getazimuth DROP
-  getazimuth DROP
-  
-	." Orientation:" getazimuth . ." Type X run to run for X seconds."
 
 : run ( uhowlong -- )
 	1000 * ms-ticks + to vend_run
-	
 	getazimuth .
 	getazimuth to desired_course
 	IDRIVING
@@ -255,3 +250,5 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 	." END OF RUN" CR
 ;
 
+." Orientation:" getazimuth . ." Type X run to run for X seconds."
+	
