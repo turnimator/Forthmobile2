@@ -42,7 +42,7 @@
 ;
 
 : badlyOffCourse?
-	desired_course getazimuth - abs 100 > ;
+	desired_course getazimuth - abs 45 > ;
 ;
 
 : turnLeft
@@ -55,19 +55,48 @@
     getazimuth getazimuth DROP DROP
 ;
 
-: correct_course
-	." Correcting course. Desired Actual "
-	desired_course dup . getazimuth dup . - dup
-	." Deviation " . 
-	dup 20 > IF
+
+: leftOrRight? ( deviation -- u ) \ -1 = left, 0 = no turn, 1 = right
+
+	\ TOS : Deviation
+	\ If absolute value < 90, we're in top half of circle
+	\ negative means left, positive means right
+	\ Otherwise, opposite
+\ get the sign
+\ get the absolute value
+\ if < -90 or > 90, negate sign
+	DUP 0 > SWAP  \ true if positive false if negative
+	abs  \ now we can work with abs value to see if we must flip the sign
+	DUP 20 < IF
+		DROP DROP 0	\ We do not change course for a deviation of less than 20 degrees (change as needed!)
+		EXIT
+	THEN
+		90 > -90 < DUP OR IF \ signs stay yhe way they are TOS=sign
+	ELSE
+		INVERT
+	THEN
+;
+
+: correct_course ( -- )
+	." correct_course: " .s
+	." Desired:" desired_course dup . 
+	." Actual:" getazimuth dup . ." Deviation:" - dup . 
+	leftOrRight? 
+	DUP 0 = IF
+		." inconsequential " cr
+		DROP
+		.s  ." correct_course exit " cr
+		EXIT
+	THEN
+	
+	1 = IF	\ we dealt with 0 above The return is either 1 or -1
 		." Turning right "
 		right_speed? 20 - 0 min right_speed
-	THEN
-	-20 < IF
-	." Turning left "
+	ELSE
+		." Turning left "
 		left_speed? 20 - 0 min left_speed
 	THEN
-	." Course adjusted" cr
+	 .s ." correct_course exit " cr
 ;
 
 : DRIVING 
@@ -162,6 +191,24 @@
 	\ If we get back on course, get back to driving
 	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
+			DUP abs 90 > IF
+		0 > IF 
+		." Turning right "
+			turnRight 500 ms
+		ELSE
+			." Turning left "
+			turnLeft 500 ms
+		THEN
+	ELSE
+		0 < IF 
+			." Turning right "
+			turnRight 500 ms
+		ELSE
+			." Turning left "
+			turnLeft 500 ms
+		THEN
+	THEN
+	
 		IOFF_COURSE
 	ELSE
 		IDRIVING
@@ -195,11 +242,7 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 
 : run ( uhowlong -- )
 	1000 * ms-ticks + to vend_run
-	getazimuth .
-	getazimuth .
-	getazimuth .
-	getazimuth .
-	getazimuth .
+	
 	getazimuth .
 	getazimuth to desired_course
 	IDRIVING
