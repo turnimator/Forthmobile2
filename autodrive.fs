@@ -57,7 +57,7 @@
 
 
 : leftOrRight? ( deviation -- u ) \ -1 = left, 0 = no turn, 1 = right
-
+	.s ." LeftOrRight? "
 	\ TOS : Deviation
 	\ If absolute value < 90, we're in top half of circle
 	\ negative means left, positive means right
@@ -65,6 +65,7 @@
 \ get the sign
 \ get the absolute value
 \ if < -90 or > 90, negate sign
+
 
 	DUP 0 > SWAP  \ true if positive false if negative
 	abs  \ now we can work with abs value to see if we must flip the sign
@@ -84,8 +85,8 @@
 	." Actual:" getazimuth dup . ." Deviation:" - dup . 
 	leftOrRight? 
 	DUP 0 = IF
-		." inconsequential " cr
-		
+		." inconsequential " 
+		DROP
 		.s  ." correct_course exit " cr
 		EXIT
 	THEN
@@ -97,6 +98,7 @@
 		." Turning left "
 		left_speed? 20 - 0 min left_speed
 	THEN
+	DROP
 	 .s ." correct_course exit " cr
 ;
 
@@ -186,9 +188,6 @@
 : OFF_COURSE
 	cr .s ." OFF_COURSE "
 	
-	freeSightAhead? INVERT IF
-		gear_bw 150 speed 300 ms stop
-	THEN
 	\ If we get back on course, get back to driving
 	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
