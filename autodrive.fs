@@ -86,7 +86,7 @@
 	leftOrRight? 
 	DUP 0 = IF
 		." inconsequential " 
-		DROP
+		DROP	
 		.s  ." correct_course exit " cr
 		EXIT
 	THEN
@@ -98,7 +98,7 @@
 		." Turning left "
 		left_speed? 20 - 0 min left_speed
 	THEN
-	DROP
+	
 	 .s ." correct_course exit " cr
 ;
 
