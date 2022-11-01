@@ -73,11 +73,25 @@
 		DROP DROP 0	\ We do not change course for a deviation of less than 20 degrees (change as needed!)
 		EXIT
 	THEN
-		90 > -90 < DUP OR IF \ signs stay yhe way they are TOS=sign
+	.s DUP ." deviation=" .
+	
+	DUP 90 < SWAP -90 > AND IF \ signs stay the way they are TOS=sign
+		." within 90 degrees Sign NOT inverted "
 	ELSE
 		INVERT
+		." More than 90 degrees left-right Sign inverted "
+	THEN
+	
+	\ Finally, we can make our decision
+	0 > IF
+		1		\ turn right
+	ELSE
+		-1		\ turn left
 	THEN
 ;
+
+: lr leftOrRight? ;
+
 
 : correct_course ( -- )
 	." correct_course: " .s
@@ -191,26 +205,25 @@
 	\ If we get back on course, get back to driving
 	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
-			DUP abs 90 > IF
-		0 > IF 
-		." Turning right "
-			turnRight 500 ms
-		ELSE
-			." Turning left "
-			turnLeft 500 ms
+		leftOrRight?
+		DUP 0 = IF
+			." inconsequential " 
+			IDRIVING
+			.s  ." back to driving " cr
+			EXIT
 		THEN
-	ELSE
-		0 < IF 
-			." Turning right "
-			turnRight 500 ms
-		ELSE
-			." Turning left "
-			turnLeft 500 ms
-		THEN
-	THEN
 	
+		1 = IF	\ we dealt with 0 above The return is either 1 or -1
+			." Turning right "
+			right_speed? 20 - 0 min right_speed
+		ELSE
+			." Turning left "
+			left_speed? 20 - 0 min left_speed
+		THEN
+	 .s ." still off course  " cr
 		IOFF_COURSE
 	ELSE
+		." not badly off course. Contnue driving. " cr
 		IDRIVING
 	THEN
 
