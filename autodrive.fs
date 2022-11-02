@@ -38,11 +38,11 @@
 : obstacleAhead? readlaser0 near < ;
 
 : onCourse?
-	desired_course getazimuth - abs 10 < ;
+	desired_course getazimuth - abs 5 < ;
 ;
 
 : badlyOffCourse?
-	desired_course getazimuth - abs 45 > ;
+	desired_course getazimuth - abs 35 > ;
 ;
 
 : turnLeft
@@ -205,6 +205,7 @@
 	\ If we get back on course, get back to driving
 	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
+		desired_course getazimuth - 
 		leftOrRight?
 		DUP 0 = IF
 			." inconsequential " 
@@ -223,7 +224,7 @@
 	 .s ." still off course  " cr
 		IOFF_COURSE
 	ELSE
-		." not badly off course. Contnue driving. " cr
+		.s ." not badly off course. Contnue driving. " cr
 		IDRIVING
 	THEN
 
