@@ -38,88 +38,52 @@
 : obstacleAhead? readlaser0 near < ;
 
 : onCourse?
-	desired_course getazimuth - abs 5 < ;
+	desired_course azimuth? - abs 5 < ;
 ;
 
 : badlyOffCourse?
-	desired_course getazimuth - abs 35 > ;
+	desired_course azimuth? - abs 35 > ;
 ;
 
 : turnLeft
     100 speed left_bw right_fw 200 ms
-    getazimuth getazimuth DROP DROP
+    azimuth? DROP
 ;
 
 : turnRight
     100 speed right_bw left_fw 200 ms
-    getazimuth getazimuth DROP DROP
+    azimuth? DROP
 ;
 
 
-: leftOrRight? ( deviation -- u ) \ -1 = left, 0 = no turn, 1 = right
-	.s ." LeftOrRight? "
-	\ TOS : Deviation
-	\ If absolute value < 90, we're in top half of circle
-	\ negative means left, positive means right
-	\ Otherwise, opposite
-\ get the sign
-\ get the absolute value
-\ if < -90 or > 90, negate sign
-
-
-	DUP 0 > SWAP  \ true if positive false if negative
-	abs  \ now we can work with abs value to see if we must flip the sign
-	DUP 20 < IF
-		DROP DROP 0	\ We do not change course for a deviation of less than 20 degrees (change as needed!)
-		EXIT
-	THEN
-	.s DUP ." deviation=" .
-	
-	DUP 90 < SWAP -90 > AND IF \ signs stay the way they are TOS=sign
-		." within 90 degrees Sign NOT inverted "
-	ELSE
-		INVERT
-		." More than 90 degrees left-right Sign inverted "
-	THEN
-	
-	\ Finally, we can make our decision
-	0 > IF
-		1		\ turn right
-	ELSE
-		-1		\ turn left
-	THEN
-;
-
-: lr leftOrRight? ;
+: lr desired_course leftOrRight? ;
 
 
 : correct_course ( -- )
 	." correct_course: " .s
-	." Desired:" desired_course dup . 
-	." Actual:" getazimuth dup . ." Deviation:" - dup . 
-	leftOrRight? 
+	." Desired:" desired_course . 
+	." Actual:" azimuth? .
+	desired_course leftOrRight? 
 	DUP 0 = IF
-		." inconsequential " 
-		DROP	
-		.s  ." correct_course exit " cr
-		EXIT
-	THEN
-	
-	1 = IF	\ we dealt with 0 above The return is either 1 or -1
-		." Turning right "
+		." inconsequential "  
+		DROP \ because we don't test the next IF
+	ELSE 1 = IF	
+		." Turning right " 
 		right_speed? 20 - 0 min right_speed
 	ELSE
-		." Turning left "
+		." Turning left " 
 		left_speed? 20 - 0 min left_speed
 	THEN
-	
-	 .s ." correct_course exit " cr
+	THEN	
+	 .s ." correct_course exit " 
 ;
+
+: cc correct_course ;
 
 : DRIVING 
 	cr .s ." DRIVING "
 	150 speed
-	getazimuth .
+	azimuth? .
 	correct_course
 	leftservo 0 servodeg rightservo 0 servodeg 0 0 servodeg 
 	.s ." servos centered. Checking sides "
@@ -203,23 +167,20 @@
 	cr .s ." OFF_COURSE "
 	
 	\ If we get back on course, get back to driving
-	correct_course desired_course getazimuth - abs ms  \ Try to make the correction depend on the amount of deviation
+	correct_course desired_course azimuth? - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
-		desired_course getazimuth - 
-		leftOrRight?
+		desired_course leftOrRight?
 		DUP 0 = IF
 			." inconsequential " 
+			DROP \ Because we won't be doing the test below
 			IDRIVING
-			.s  ." back to driving " cr
-			EXIT
-		THEN
-	
-		1 = IF	\ we dealt with 0 above The return is either 1 or -1
+		ELSE 1 = IF	\ we dealt with 0 above The return is either 1 or -1
 			." Turning right "
 			right_speed? 20 - 0 min right_speed
 		ELSE
 			." Turning left "
 			left_speed? 20 - 0 min left_speed
+		THEN
 		THEN
 	 .s ." still off course  " cr
 		IOFF_COURSE
@@ -251,8 +212,8 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 
 : run ( uhowlong -- )
 	1000 * ms-ticks + to vend_run
-	getazimuth .
-	getazimuth to desired_course
+	azimuth? .
+	
 	IDRIVING
 	BEGIN
 		run-state
@@ -263,5 +224,6 @@ CREATE states ' DRIVING , ' OBSTRUCTED , ' CRASHED , ' BOXED_IN , ' OFF_COURSE ,
 	." END OF RUN" CR
 ;
 
-." Orientation:" getazimuth . ." Type X run to run for X seconds."
-	
+." Orientation:" azimuth? . ." Type X run to run for X seconds."
+azimuth? to desired_course
+
