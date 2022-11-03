@@ -688,7 +688,7 @@ typedef int64_t dcell_t;
 #include <Adafruit_PWMServoDriver.h>
 #define SERVOMIN  150 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  600 // This is the 'maximum' pulse length count (out of 4096)
-#define SERVOCENTER 340 // Observed
+#define SERVOCENTER (150+600)/2 // Observed
 #define USMIN  600 // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
 #define USMAX  2400 // This is the rounded 'maximum' microsecond length based on the maximum pulse of 600
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
@@ -748,9 +748,9 @@ typedef int64_t dcell_t;
   }
 
   int getAzimuth() {
-     compass.read();
-      int mean = compass.getAzimuth();
-    
+    compass.read();
+    int mean = compass.getAzimuth();
+
     do {
       compass.read();
       int r1 = compass.getAzimuth();
@@ -764,10 +764,30 @@ typedef int64_t dcell_t;
     return mean;
   }
 
+
+#define TURN_LEFT -1
+#define TURN_RIGHT 1
+
+  int leftOrRight(int des) {
+    int act = getAzimuth();
+    int dev = act - des;
+
+    //printf("Dev=%d ", dev);
+
+    if (abs(dev) < 5) {
+      return 0;
+    }
+    if (abs(dev) < 180) {
+        return (dev>0) ? TURN_LEFT : TURN_RIGHT;
+      } else {
+        return (dev<0) ? TURN_LEFT : TURN_RIGHT;
+    }
+  }
 #define OPTIONAL_QMC5883_SUPPORT \
   X("setupCompass", SETUP_COMPASS, setUpCompass() ) \
   X("readCompass", READ_COMPASS, compass.read(); PUSH(compass.getX()); PUSH(compass.getY()); PUSH(compass.getZ()) ) \
-  X("getazimuth", GET_AZIMUTH, compass.read(); PUSH(getAzimuth()))
+  X("azimuth?", GET_AZIMUTH, compass.read(); PUSH(getAzimuth())) \
+  X("leftOrRight?", LEFT_OR_RIGHT, PUSH(leftOrRight(n0)); NIP)
 
 #else
 #define OPTIONAL_QMC5883_SUPPORT
@@ -2297,4 +2317,3 @@ typedef int64_t dcell_t;
   void loop() {
     g_sys.rp = forth_run(g_sys.rp);
   }
-
