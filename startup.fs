@@ -321,29 +321,3 @@ blinkoutputs
 setupservo
 setuplaser
 setupcompass
-
-0 value turndirection
-
-: turnto ( ucompassdirection -- )
-    150 speed
-		
-	dup
-	dup getazimuth < 
-	
-	IF 
-		left_fw right_bw 
-	ELSE 
-		right_fw left_bw
-	THEN
-    
-	BEGIN
-		PAUSE
-		dup
-		getazimuth - abs 5 < 
-		
-	UNTIL
-	DROP DROP
-	stop
-	
-;
-
