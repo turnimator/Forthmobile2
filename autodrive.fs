@@ -165,7 +165,12 @@
 
 : OFF_COURSE
 	cr .s ." OFF_COURSE "
-	
+	150 speed
+	obstacleAhead? IF
+		." Obstacle detected" 
+		IOBSTRUCTED
+		EXIT
+	THEN
 	\ If we get back on course, get back to driving
 	correct_course desired_course azimuth? - abs ms  \ Try to make the correction depend on the amount of deviation
 	badlyOffCourse? IF
