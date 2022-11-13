@@ -5,3 +5,7 @@ contains low-level words to interact with the ESP32superexpander board, the lase
 It also contains gode to control the wheels' speed and direction.
 ## autodrive.fs
 contains the top-level autodrive code
+
+## Startup and Autodrive
+https://docs.google.com/document/d/1MlfXAm6yeVxjHgzF-E0LGG0kIZ7gFkiAXZAdYF-DrEk/edit?usp=sharing
+documents the software
